@@ -714,7 +714,11 @@ async function callLLM(userPrompt){
   });
   if(!response.ok){
     let detail = response.status;
-    try{ const errBody = await response.json(); if(errBody?.error?.message) detail += " - " + errBody.error.message; }catch(e){}
+    try{
+      const errBody = await response.json();
+      const message = errBody?.error?.message || errBody?.error || errBody?.message;
+      if(message) detail += " - " + message;
+    }catch(e){}
     throw new Error("API lỗi " + detail);
   }
   const data = await response.json();
@@ -786,7 +790,11 @@ async function callLLMWithSearch(userPrompt){
   });
   if(!response.ok){
     let detail = response.status;
-    try{ const errBody = await response.json(); if(errBody?.error?.message) detail += " - " + errBody.error.message; }catch(e){}
+    try{
+      const errBody = await response.json();
+      const message = errBody?.error?.message || errBody?.error || errBody?.message;
+      if(message) detail += " - " + message;
+    }catch(e){}
     throw new Error("API lỗi " + detail);
   }
   const data = await response.json();

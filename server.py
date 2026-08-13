@@ -35,7 +35,9 @@ load_dotenv()
 
 
 class ApiError(Exception):
-    pass
+    def __init__(self, message: str, status: int = 400):
+        super().__init__(message)
+        self.status = status
 
 
 def config(name: str, default: str = "") -> str:
@@ -66,7 +68,7 @@ def request_json(url: str, headers: dict[str, str], body: dict) -> dict:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")[:500]
-        raise ApiError(f"AI API tra ve HTTP {exc.code}: {detail}") from exc
+        raise ApiError(f"AI API tra ve HTTP {exc.code}: {detail}", exc.code) from exc
     except urllib.error.URLError as exc:
         raise ApiError(f"Khong ket noi duoc toi AI API: {exc.reason}") from exc
 
@@ -109,14 +111,11 @@ def chat(prompt: str, search: bool = False) -> str:
                 "Web search chua duoc cau hinh. Dung OpenAI thi dat AI_SEARCH_MODE=openai_responses; "
                 "dung Claude thi dat AI_PROVIDER=anthropic. Cac API compatible khac can co cong cu search rieng."
             )
-        responses_url = (
-            base_url.rsplit("/", 1)[0] + "/responses"
-            if base_url.endswith("/v1") else f"{base_url}/responses"
-        )
+        responses_url = f"{base_url}/responses"
         data = request_json(
             responses_url,
             {"Authorization": f"Bearer {api_key}"},
-            {"model": model, "input": prompt, "tools": [{"type": "web_search_preview"}]},
+            {"model": model, "input": prompt, "tools": [{"type": "web_search"}]},
         )
         text = data.get("output_text", "").strip()
     else:
@@ -143,8 +142,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             if not isinstance(prompt, str) or not prompt.strip():
                 raise ApiError("Prompt khong hop le.")
             self.send_json(HTTPStatus.OK, {"text": chat(prompt, search=self.path == "/api/search")})
-        except (json.JSONDecodeError, ApiError) as exc:
-            self.send_json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+        except json.JSONDecodeError:
+            self.send_json(HTTPStatus.BAD_REQUEST, {"error": "JSON request khong hop le."})
+        except ApiError as exc:
+            self.send_json(HTTPStatus(exc.status), {"error": str(exc)})
         except Exception as exc:  # Do not send stack traces or keys to the browser.
             self.send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": f"Server error: {exc}"})
 
