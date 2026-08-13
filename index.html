@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PATRON — Trợ lý AI tự động tìm kiếm & kết nối nguồn tài trợ cho tổ chức xã hội </title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDEFE8;
+    --paper:#FBFAF6;
+    --ink:#16231C;
+    --ink-soft:#57635B;
+    --gold:#C98A2B;
+    --gold-soft:#EFDDB8;
+    --teal:#3E6259;
+    --teal-soft:#DCE8E2;
+    --brick:#AE4A3E;
+    --brick-soft:#F1DAD5;
+    --border:#D9DAD0;
+    --radius:12px;
+    --shadow: 0 1px 2px rgba(22,35,28,.06), 0 8px 24px rgba(22,35,28,.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',sans-serif; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px 80px;}
+  header.top{
+    padding:36px 24px 28px; border-bottom:1px solid var(--border);
+    background: linear-gradient(180deg, var(--paper), var(--bg));
+  }
+  header.top .inner{max-width:1180px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand .mark{
+    width:42px; height:42px; border-radius:10px; background:var(--ink);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .brand .mark svg{width:22px; height:22px;}
+  .brand h1{font-family:'Fraunces',serif; font-weight:700; font-size:26px; margin:0; letter-spacing:.2px;}
+  .brand p{margin:2px 0 0; color:var(--ink-soft); font-size:13.5px;}
+  .stamp{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--teal);
+    border:1px solid var(--teal); border-radius:999px; padding:6px 14px;
+    background:var(--teal-soft); white-space:nowrap;
+  }
+
+  section.block{margin-top:38px;}
+  .block h2{
+    font-family:'Fraunces',serif; font-size:20px; font-weight:600; margin:0 0 4px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  .block h2 .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--gold);
+    letter-spacing:.06em; text-transform:uppercase;
+  }
+  .block .desc{color:var(--ink-soft); font-size:13.5px; margin:0 0 18px; max-width:640px;}
+
+  .card{
+    background:var(--paper); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px;
+  }
+  .grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:20px;}
+  @media (max-width:860px){ .grid2{grid-template-columns:1fr;} }
+
+  label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], input[type=date], textarea, select{
+    width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:8px;
+    background:#fff; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+  }
+  select{cursor:pointer;}
+  textarea{resize:vertical; min-height:64px; font-family:'Inter',sans-serif;}
+  input:focus, textarea:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .hint{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+  .chip{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; background:var(--teal-soft);
+    color:var(--teal); border-radius:999px; padding:4px 10px;
+  }
+  .chip.gold{background:var(--gold-soft); color:#8a5c17;}
+
+  button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer;
+    border-radius:8px; border:1px solid transparent; padding:10px 16px;
+  }
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-primary:hover{background:#0b120e;}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--border);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-sm{padding:5px 10px; font-size:12px;}
+  .btn-danger{background:transparent; color:var(--brick); border-color:var(--brick-soft);}
+
+  /* Weight sliders */
+  .weights{display:grid; grid-template-columns:1fr 1fr; gap:10px 20px;}
+  .wrow{display:flex; align-items:center; gap:10px;}
+  .wrow span.label{font-size:12.5px; flex:0 0 128px; color:var(--ink-soft);}
+  .wrow input[type=range]{flex:1; accent-color:var(--gold);}
+  .wrow span.val{font-family:'JetBrains Mono',monospace; font-size:12px; width:34px; text-align:right;}
+  .wsum{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-soft); margin-top:10px;}
+
+  /* Prospect ledger */
+  .table-wrap{overflow-x:auto; border-radius:10px; border:1px solid var(--border);}
+  table.p-table{width:100%; border-collapse:collapse; font-size:12.5px; background:#fff; min-width:960px;}
+  table.p-table thead th{
+    text-align:left; font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink-soft); background:var(--teal-soft); padding:9px 12px;
+    position:sticky; top:0;
+  }
+  table.p-table td{padding:10px 12px; border-top:1px solid var(--border); vertical-align:top;}
+  table.p-table tr.ai-row{background:#FEFBF3;}
+  table.p-table tr:hover{background:#F5F6F2;}
+  .p-name{font-weight:600; font-size:13px;}
+  .p-source{font-size:10.5px; margin-top:3px;}
+  .p-source a{color:var(--teal); text-decoration:none;}
+  .p-source a:hover{text-decoration:underline;}
+  .p-tags{display:flex; flex-wrap:wrap; gap:4px; max-width:180px;}
+  .p-tags .chip{font-size:10px; padding:2px 7px;}
+  .p-amount{font-family:'JetBrains Mono',monospace; font-size:12px; white-space:nowrap;}
+  .p-deadline{font-family:'JetBrains Mono',monospace; font-size:11.5px; white-space:nowrap;}
+  .rep-wrap{display:flex; align-items:center; gap:6px;}
+  .rep-bar{width:44px; height:6px; border-radius:999px; background:#E7E5DA; overflow:hidden;}
+  .rep-fill{height:100%; border-radius:999px;}
+  .rep-num{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft);}
+  .p-signal{font-size:11px; color:var(--ink-soft); white-space:nowrap;}
+  .legal-flag{color:var(--brick); font-size:10.5px; display:block; margin-top:2px;}
+
+  .addform{border-top:1px dashed var(--border); margin-top:16px; padding-top:16px;}
+  .addform .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+  @media (max-width:700px){ .addform .grid3{grid-template-columns:1fr;} }
+  .addform label{margin:10px 0 5px;}
+  .checkline{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:13px;}
+
+  /* Results */
+  .result-row{
+    display:grid; grid-template-columns:64px 1fr auto; gap:16px; align-items:center;
+    background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px;
+  }
+  .dial{
+    width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .dial .num{
+    width:44px; height:44px; border-radius:50%; background:var(--paper); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace;
+  }
+  .dial .num b{font-size:13px; line-height:1;}
+  .dial .num small{font-size:8px; color:var(--ink-soft);}
+  .r-name{font-weight:600; font-size:14.5px;}
+  .r-badge{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 8px; border-radius:999px;
+    display:inline-block; margin-top:4px;
+  }
+  .r-badge.ok{background:var(--teal-soft); color:var(--teal);}
+  .r-badge.review{background:var(--brick-soft); color:var(--brick);}
+  .r-factors{font-size:11.5px; color:var(--ink-soft); margin-top:6px;}
+  details.letter-box{
+    margin-top:10px; grid-column:1 / -1; border-top:1px dashed var(--border); padding-top:10px;
+  }
+  details.letter-box summary{cursor:pointer; font-size:12.5px; font-weight:600; color:var(--teal);}
+  details.letter-box textarea{margin-top:10px; min-height:180px; font-family:'JetBrains Mono',monospace; font-size:12px;}
+  .copy-note{font-size:11px; color:var(--ink-soft); margin-top:6px;}
+
+  .empty{
+    text-align:center; padding:36px 20px; color:var(--ink-soft); font-size:13.5px;
+    border:1px dashed var(--border); border-radius:10px;
+  }
+  footer.note{margin-top:44px; font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--border); padding-top:16px;}
+  .ai-banner{
+    margin-top:24px; background:var(--gold-soft); border:1px solid var(--gold); border-radius:10px;
+    padding:14px 16px; font-size:12.5px; color:#5c4008; line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2 L20 7 V17 L12 22 L4 17 V7 Z" stroke="#EFDDB8" stroke-width="1.4"/>
+          <path d="M12 8 V16 M8 12 H16" stroke="#EFDDB8" stroke-width="1.4"/>
+        </svg>
+      </div>
+      <div>
+        <h1>PATRON</h1>
+        <p>Trợ lý AI tự động tìm kiếm & kết nối nguồn tài trợ cho tổ chức xã hội </p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- NGO PROFILE -->
+  <section class="block">
+    <h2><span class="eyebrow">01</span> Hồ sơ tổ chức</h2>
+    <p class="desc">Điền hồ sơ tổ chức của bạn.
+    <div class="card" style="margin-bottom:16px;">
+      <label>Hoặc dán mô tả tổ chức dạng text tự do — AI sẽ trích xuất thành hồ sơ có cấu trúc bên dưới</label>
+      <textarea id="rawDesc" placeholder="VD: Tổ chức của tụi mình là một nhà tạm lánh ở Hà Nội, hoạt động từ năm... sứ mệnh là..."></textarea>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
+        <button class="btn-primary btn-sm" onclick="extractWithAI()">Trích xuất bằng AI</button>
+        <span class="hint" id="extractStatus">Chạy server.py rồi mở http://127.0.0.1:8000 để dùng AI. API key nằm trong .env, không nằm trong trang web.</span>
+      </div>
+    </div>
+
+    <div class="card grid2">
+      <div>
+        <label>Tên tổ chức</label>
+        <input type="text" id="ngoName">
+        <label>Sứ mệnh (1–2 câu)</label>
+        <textarea id="ngoMission"></textarea>
+        <div class="row2">
+          <div>
+            <label>Ngân sách cần gây quỹ — tối thiểu (USD)</label>
+            <input type="number" id="ngoBudgetMin">
+          </div>
+          <div>
+            <label>Ngân sách cần gây quỹ — tối đa (USD)</label>
+            <input type="number" id="ngoBudgetMax">
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>Lĩnh vực hoạt động (cách nhau bằng dấu phẩy)</label>
+        <input type="text" id="ngoFields">
+        <div class="chips" id="ngoFieldsPreview"></div>
+        <label>Địa bàn hoạt động (cách nhau bằng dấu phẩy)</label>
+        <input type="text" id="ngoRegions">
+        <div class="chips" id="ngoRegionsPreview"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WEIGHTS -->
+  <section class="block">
+    <h2><span class="eyebrow">02</span> Trọng số chấm điểm</h2>
+    <p class="desc">Bảy yếu tố dùng để tính match score. Kéo để tinh chỉnh — hệ thống tự chuẩn hoá về tổng 100% khi tính điểm nên không cần cộng đúng 100.</p>
+    <div class="card">
+      <div class="weights" id="weightsGrid"></div>
+      <div class="wsum" id="wsum"></div>
+      <button class="btn-ghost btn-sm" style="margin-top:12px" onclick="resetWeights()">Đặt lại trọng số mặc định</button>
+    </div>
+  </section>
+
+  <!-- PROSPECTS -->
+  <section class="block">
+    <h2><span class="eyebrow">03</span> Danh sách quỹ / nhà tài trợ</h2>
+    <p class="desc">AI tự tìm quỹ/nhà tài trợ thật trên web dựa theo hồ sơ NGO/ Có thể xoá, sửa tay, hoặc thêm quỹ bạn đã biết sẵn.</p>
+
+    <div class="card" style="margin-bottom:16px; border-left:3px solid var(--gold);">
+      <label>Tìm quỹ tài trợ thật trên web bằng AI</label>
+      <div class="hint" style="margin-bottom:10px;">
+        AI dùng web search thật để tìm quỹ/grant/CSR đang hoạt động, khớp với lĩnh vực + địa bàn + ngân sách
+        ở hồ sơ NGO của bạn. Mỗi kết quả kèm link nguồn để bạn tự kiểm chứng trước khi liên hệ —
+        đừng tin tuyệt đối, AI có thể nhầm hoặc thiếu cập nhật.
+      </div>
+      <div class="checkline" style="margin-top:0;">
+        <input type="checkbox" id="clearBeforeSearch">
+        <label style="margin:0" for="clearBeforeSearch">Xoá danh sách hiện tại trước khi thêm kết quả mới</label>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+        <button class="btn-primary btn-sm" onclick="findFundersWithAI()">Tìm quỹ mới trên web</button>
+        <span class="hint" id="searchStatus">Cần chạy server.py. Web search yêu cầu API/model có hỗ trợ web search.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="p-table">
+          <thead>
+            <tr>
+              <th>Quỹ / nhà tài trợ</th>
+              <th>Lĩnh vực</th>
+              <th>Địa bàn</th>
+              <th>Tài trợ (USD)</th>
+              <th>Hạn nộp</th>
+              <th>Điều kiện</th>
+              <th>Hào phóng</th>
+              <th>Tín hiệu</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="prospectList"></tbody>
+        </table>
+      </div>
+
+      <div class="addform">
+        <div class="grid3">
+          <div>
+            <label>Tên quỹ / nhà tài trợ</label>
+            <input type="text" id="newName" placeholder="VD: Quỹ ABC">
+          </div>
+          <div>
+            <label>Lĩnh vực quan tâm (phẩy)</label>
+            <input type="text" id="newFields" placeholder="giáo dục, trẻ em">
+          </div>
+          <div>
+            <label>Địa bàn ưu tiên (phẩy)</label>
+            <input type="text" id="newRegions" placeholder="toàn quốc">
+          </div>
+          <div>
+            <label>Mức tài trợ tối thiểu (USD)</label>
+            <input type="number" id="newAmtMin">
+          </div>
+          <div>
+            <label>Mức tài trợ tối đa (USD)</label>
+            <input type="number" id="newAmtMax">
+          </div>
+          <div>
+            <label>Hạn nộp (nếu có)</label>
+            <input type="date" id="newDeadline">
+          </div>
+          <div>
+            <label>Độ hào phóng lịch sử (0–100)</label>
+            <input type="number" id="newGenerosity" value="70" min="0" max="100">
+          </div>
+          <div>
+            <label>Điều kiện &amp; tư cách pháp lý</label>
+            <select id="newEligibility">
+              <option value="eligible">Đủ điều kiện</option>
+              <option value="review">Cần xem lại</option>
+              <option value="ineligible">Không đủ điều kiện</option>
+            </select>
+          </div>
+          <div>
+            <label>Tín hiệu quan tâm gần đây — số ngày trước</label>
+            <input type="number" id="newSignalDays" value="30">
+          </div>
+          <div>
+            <label>Website / link kiểm chứng (tuỳ chọn)</label>
+            <input type="text" id="newWebsite" placeholder="vd: vinif.org">
+          </div>
+          <div>
+            <label>Ghi chú tín hiệu (tuỳ chọn)</label>
+            <input type="text" id="newSignalNote" placeholder="VD: mới mở vòng gọi hồ sơ">
+          </div>
+        </div>
+        <button class="btn-primary btn-sm" style="margin-top:14px" onclick="addProspect()">+ Thêm vào danh sách</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPUTE -->
+  <section class="block" style="text-align:center;">
+    <button class="btn-primary" style="padding:13px 30px; font-size:14.5px;" onclick="computeResults()">Tính điểm &amp; xếp hạng toàn bộ danh sách</button>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="block">
+    <h2><span class="eyebrow">04</span> Kết quả xếp hạng</h2>
+    <p class="desc">Điểm phù hợp (0–100) và giải thích theo từng yếu tố. Mở "Soạn thư tiếp cận" để lấy bản nháp.</p>
+    <div id="resultsArea"><div class="empty">Chưa có kết quả — bấm "Tính điểm & xếp hạng" ở trên.</div></div>
+  </section>
+
+  <footer class="note">
+    PATRON demo — dữ liệu quỹ tài trợ mẫu mang tính minh hoạ, không phải kết quả tìm kiếm web thật.
+    Toàn bộ tính toán chạy cục bộ trong trình duyệt (client-side), không có backend, không lưu trữ dữ liệu ở đâu khác.
+  </footer>
+</div>
+
+<script>
+// ---------- STATE ----------
+let ngo = {
+  name: "Nhà tạm lánh Hà Nội (ví dụ minh hoạ theo đề án)",
+  mission: "Cung cấp nơi trú ẩn an toàn, tư vấn tâm lý và hỗ trợ pháp lý cho phụ nữ và trẻ em là nạn nhân bạo lực gia đình tại Hà Nội.",
+  fields: ["bảo vệ phụ nữ và trẻ em", "nhà tạm lánh", "tư vấn tâm lý", "hỗ trợ pháp lý"],
+  regions: ["hà nội"],
+  budgetMin: 100000,
+  budgetMax: 150000
+};
+
+let weights = { field:30, amount:15, geo:15, eligibility:15, deadline:10, signal:10, generosity:5 };
+const WEIGHT_LABELS = {
+  field:"Khớp lĩnh vực", amount:"Khớp quy mô ngân sách", geo:"Khớp địa bàn",
+  eligibility:"Điều kiện & tư cách pháp lý", deadline:"Thời điểm & hạn nộp",
+  signal:"Đà quyên góp & CSR", generosity:"Độ hào phóng lịch sử"
+};
+
+let prospects = [
+  {id:"P-01", name:"Quỹ VinIF – Chương trình An sinh Xã hội (giả lập)", fields:["giáo dục","trẻ em","nghiên cứu xã hội"], regions:["toàn quốc","hà nội"], amountMin:50000, amountMax:150000, deadline:"2026-09-30", generosity:85, eligibility:"eligible", signalDays:20, signalNote:"Mới công bố ưu tiên dự án trẻ em dân tộc 2026-2028", website:"vinif.org"},
+  {id:"P-02", name:"USAID Vietnam – Quỹ Bảo vệ Phụ nữ & Trẻ em (minh hoạ)", fields:["bảo vệ phụ nữ và trẻ em","nhà tạm lánh","hỗ trợ pháp lý"], regions:["hà nội","toàn quốc"], amountMin:100000, amountMax:300000, deadline:"2026-10-15", generosity:90, eligibility:"eligible", signalDays:10, signalNote:"Đang kêu gọi proposal hỗ trợ nạn nhân bạo lực gia đình Q4/2026", website:"usaid.gov"},
+  {id:"P-03", name:"UNDP Vietnam – Sáng kiến Phát triển Bền vững (minh hoạ)", fields:["bình đẳng giới","giảm nghèo","tư vấn tâm lý"], regions:["hà nội","đông nam á"], amountMin:80000, amountMax:250000, deadline:"2026-11-01", generosity:88, eligibility:"eligible", signalDays:45, signalNote:"Quan tâm dự án kết hợp hỗ trợ pháp lý và tâm lý cho phụ nữ", website:"undp.org"},
+  {id:"P-04", name:"Quỹ Hành Động Vì Phụ Nữ Việt Nam (giả lập, dựa trên ActionAid VN)", fields:["bảo vệ phụ nữ và trẻ em","tư vấn tâm lý","nhà tạm lánh"], regions:["hà nội","tp.hcm"], amountMin:40000, amountMax:120000, deadline:"2026-09-20", generosity:80, eligibility:"eligible", signalDays:15, signalNote:"Mới tài trợ 2 dự án nhà tạm lánh tại miền Bắc", website:"actionaid.org"},
+  {id:"P-05", name:"Bridgespan Regional Fund – Đông Nam Á (minh hoạ)", fields:["bảo vệ phụ nữ và trẻ em","phát triển tổ chức NPO"], regions:["đông nam á","châu á"], amountMin:60000, amountMax:200000, deadline:"2026-10-10", generosity:75, eligibility:"review", signalDays:60, signalNote:"Ưu tiên NPO tại Indonesia, Malaysia, Singapore — cần xác nhận có mở rộng sang Việt Nam", website:""},
+  {id:"P-06", name:"Quỹ Doanh nghiệp CSR VinGroup (minh hoạ)", fields:["giáo dục","y tế","bảo vệ phụ nữ và trẻ em"], regions:["toàn quốc"], amountMin:20000, amountMax:80000, deadline:"", generosity:70, eligibility:"eligible", signalDays:90, signalNote:"Chương trình 'Triệu trái tim' hỗ trợ cộng đồng 2026", website:"vingroup.net"},
+  {id:"P-07", name:"Quỹ Phát triển Cộng đồng AIDP Vietnam (minh hoạ, dựa trên ADF)", fields:["phụ nữ","phát triển nông thôn","hỗ trợ pháp lý"], regions:["hà nội","đông nam á"], amountMin:30000, amountMax:100000, deadline:"2026-08-31", generosity:82, eligibility:"eligible", signalDays:25, signalNote:"Ưu tiên dự án do NGO địa phương dẫn dắt", website:""},
+  {id:"P-08", name:"Quỹ Thiện Tâm – Techcombank Foundation (minh hoạ)", fields:["giáo dục","y tế","bảo vệ phụ nữ và trẻ em"], regions:["toàn quốc","vùng sâu"], amountMin:10000, amountMax:50000, deadline:"2026-11-15", generosity:78, eligibility:"ineligible", signalDays:30, signalNote:"Chỉ nhận hồ sơ từ tổ chức đã đăng ký pháp lý ≥5 năm — cần kiểm tra điều kiện", website:"techcombank.com.vn"}
+];
+
+const REASON_TEXT = {
+  field:"lĩnh vực hoạt động của quỹ khớp cao với lĩnh vực của tổ chức",
+  amount:"mức tài trợ điển hình của quỹ phù hợp với ngân sách đang cần",
+  geo:"địa bàn tài trợ của quỹ bao phủ khu vực tổ chức đang hoạt động",
+  eligibility:"tổ chức đủ điều kiện & tư cách pháp lý theo tiêu chí của quỹ",
+  deadline:"còn đủ thời gian chuẩn bị hồ sơ trước hạn nộp",
+  signal:"quỹ vừa có tín hiệu quan tâm/hoạt động CSR gần đây liên quan",
+  generosity:"quỹ có lịch sử giải ngân đều đặn và hào phóng"
+};
+
+// ---------- HELPERS ----------
+const splitTags = s => (s||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
+
+function chipHtml(list, cls){ return list.map(t=>`<span class="chip ${cls||''}">${t}</span>`).join(""); }
+
+function amountFit(nMin,nMax,pMin,pMax){
+  if(nMin==null || pMin==null || isNaN(nMin) || isNaN(pMin)) return 0.5;
+  const overlap = Math.min(nMax,pMax) - Math.max(nMin,pMin);
+  if(overlap >= 0) return 1.0;
+  const gap = Math.abs(overlap);
+  const span = Math.max(nMax-nMin, pMax-pMin, 1);
+  return Math.max(0, 1 - gap/span);
+}
+function geoFit(nRegions, pRegions){
+  if(!nRegions.length || !pRegions.length) return 0.5;
+  if(pRegions.includes("toàn quốc")) return 1.0;
+  return nRegions.some(r=>pRegions.includes(r)) ? 1.0 : 0.0;
+}
+function fieldFit(nFields, pFields){
+  if(!nFields.length || !pFields.length) return 0.0;
+  const overlap = pFields.filter(f=>nFields.includes(f)).length;
+  return Math.round((overlap/pFields.length)*100)/100;
+}
+function deadlineFit(deadlineStr){
+  if(!deadlineStr) return 0.5;
+  const days = Math.floor((new Date(deadlineStr) - new Date()) / 86400000);
+  const MIN=14, FULL=60;
+  if(days < MIN) return 0.0;
+  if(days >= FULL) return 1.0;
+  return Math.round(((days-MIN)/(FULL-MIN))*100)/100;
+}
+function signalFit(daysAgo){
+  if(daysAgo<=30) return 1.0;
+  if(daysAgo>=120) return 0.0;
+  return Math.round((1-(daysAgo-30)/90)*100)/100;
+}
+
+const ELIGIBILITY_SCORE = { eligible: 1.0, review: 0.5, ineligible: 0.0 };
+
+function scoreProspect(p){
+  const factors = {
+    field: fieldFit(ngo.fields, p.fields),
+    amount: amountFit(ngo.budgetMin, ngo.budgetMax, p.amountMin, p.amountMax),
+    geo: geoFit(ngo.regions, p.regions),
+    eligibility: ELIGIBILITY_SCORE[p.eligibility] ?? 0.5,
+    deadline: deadlineFit(p.deadline),
+    signal: signalFit(p.signalDays ?? 999),
+    generosity: (p.generosity||0)/100
+  };
+  const totalW = Object.values(weights).reduce((a,b)=>a+b,0) || 1;
+  let raw = 0;
+  const breakdown = [];
+  for(const k in factors){
+    const w = weights[k]/totalW;
+    const contribution = factors[k]*w*100;
+    raw += contribution;
+    breakdown.push({key:k, score:factors[k], weightPct: Math.round(w*1000)/10, contribution: Math.round(contribution*10)/10});
+  }
+  breakdown.sort((a,b)=>b.contribution-a.contribution);
+  let eligibility;
+  if(p.eligibility === "ineligible") eligibility = "INELIGIBLE";
+  else if(p.eligibility === "review" || factors.geo===0 || factors.field===0) eligibility = "REVIEW_REQUIRED";
+  else eligibility = "ELIGIBLE";
+  return {prospect:p, score: Math.round(raw*10)/10, breakdown, eligibility};
+}
+
+function dialColor(score){
+  if(score>=80) return "#3E6259";
+  if(score>=60) return "#C98A2B";
+  return "#AE4A3E";
+}
+
+function draftLetter(result){
+  const top = result.breakdown.filter(f=>f.score>0).slice(0,3).map(f=>REASON_TEXT[f.key]);
+  const reasons = top.length ? top.join("; ") : "một số yếu tố phù hợp cơ bản";
+  const p = result.prospect;
+  return `Kính gửi Ban Quản lý ${p.name},
+
+Tôi là đại diện ${ngo.name}. ${ngo.mission}
+
+Qua rà soát, chúng tôi nhận thấy ${reasons}, nên mạnh dạn kết nối để tìm hiểu khả năng hợp tác.
+Ngân sách dự kiến cho hạng mục liên quan nằm trong khoảng ${(ngo.budgetMin||0).toLocaleString()} - ${(ngo.budgetMax||0).toLocaleString()} USD.
+
+Rất mong được trao đổi thêm cùng quý quỹ trong thời gian tới, qua email hoặc một buổi gặp trực tuyến ngắn.
+
+Trân trọng,
+${ngo.name}
+
+(Điểm phù hợp tham khảo nội bộ: ${result.score}/100 — đây KHÔNG phải xác suất được duyệt, chỉ là chỉ số ưu tiên nội bộ để sắp xếp thứ tự liên hệ. Bản nháp này cần người phụ trách gây quỹ đọc và chỉnh sửa trước khi gửi.)`;
+}
+
+// ---------- RENDER: NGO ----------
+function loadNgoToForm(){
+  document.getElementById("ngoName").value = ngo.name;
+  document.getElementById("ngoMission").value = ngo.mission;
+  document.getElementById("ngoBudgetMin").value = ngo.budgetMin;
+  document.getElementById("ngoBudgetMax").value = ngo.budgetMax;
+  document.getElementById("ngoFields").value = ngo.fields.join(", ");
+  document.getElementById("ngoRegions").value = ngo.regions.join(", ");
+  renderNgoPreview();
+}
+function renderNgoPreview(){
+  document.getElementById("ngoFieldsPreview").innerHTML = chipHtml(ngo.fields);
+  document.getElementById("ngoRegionsPreview").innerHTML = chipHtml(ngo.regions,"gold");
+}
+function syncNgoFromForm(){
+  ngo.name = document.getElementById("ngoName").value.trim() || "Tổ chức của bạn";
+  ngo.mission = document.getElementById("ngoMission").value.trim();
+  ngo.budgetMin = parseFloat(document.getElementById("ngoBudgetMin").value) || 0;
+  ngo.budgetMax = parseFloat(document.getElementById("ngoBudgetMax").value) || 0;
+  ngo.fields = splitTags(document.getElementById("ngoFields").value);
+  ngo.regions = splitTags(document.getElementById("ngoRegions").value);
+  renderNgoPreview();
+}
+["ngoName","ngoMission","ngoBudgetMin","ngoBudgetMax","ngoFields","ngoRegions"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", syncNgoFromForm);
+});
+
+// ---------- RENDER: WEIGHTS ----------
+function renderWeights(){
+  const grid = document.getElementById("weightsGrid");
+  grid.innerHTML = "";
+  for(const k in weights){
+    const row = document.createElement("div");
+    row.className = "wrow";
+    row.innerHTML = `<span class="label">${WEIGHT_LABELS[k]}</span>
+      <input type="range" min="0" max="50" value="${weights[k]}" data-k="${k}">
+      <span class="val" id="wval-${k}">${weights[k]}%</span>`;
+    grid.appendChild(row);
+  }
+  grid.querySelectorAll("input[type=range]").forEach(inp=>{
+    inp.addEventListener("input", e=>{
+      weights[e.target.dataset.k] = parseInt(e.target.value);
+      document.getElementById(`wval-${e.target.dataset.k}`).innerText = e.target.value+"%";
+      updateWsum();
+    });
+  });
+  updateWsum();
+}
+function updateWsum(){
+  const sum = Object.values(weights).reduce((a,b)=>a+b,0);
+  document.getElementById("wsum").innerText = `Tổng hiện tại: ${sum}% (tự động chuẩn hoá về 100% khi tính điểm, không bắt buộc phải đúng 100)`;
+}
+function resetWeights(){
+  weights = { field:30, amount:15, geo:15, eligibility:15, deadline:10, signal:10, generosity:5 };
+  renderWeights();
+}
+
+// ---------- RENDER: PROSPECTS ----------
+function chipRow(list, max, cls){
+  if(!list.length) return '<span class="hint">—</span>';
+  const shown = list.slice(0,max);
+  const rest = list.length - shown.length;
+  let html = `<div class="p-tags">` + chipHtml(shown, cls);
+  if(rest > 0) html += `<span class="chip">+${rest}</span>`;
+  html += `</div>`;
+  return html;
+}
+function repColor(v){
+  if(v>=75) return "#3E6259";
+  if(v>=50) return "#C98A2B";
+  return "#AE4A3E";
+}
+function eligibilityBadge(e){
+  const map = {
+    eligible: '<span class="r-badge ok">Đủ điều kiện</span>',
+    review: '<span class="r-badge review">Cần xem lại</span>',
+    ineligible: '<span class="r-badge review" style="background:var(--brick-soft); color:var(--brick);">Không đủ đk</span>'
+  };
+  return map[e] || map.review;
+}
+// Link kiểm chứng: ưu tiên sourceUrl (do AI tự tìm & đọc thật), fallback về website (m tự điền)
+function verifyLink(p){
+  if(p.sourceUrl) return p.sourceUrl;
+  if(p.website){
+    const domain = p.website.replace(/^https?:\/\//,"");
+    return "https://" + domain;
+  }
+  return null;
+}
+function renderProspects(){
+  const list = document.getElementById("prospectList");
+  if(!prospects.length){
+    list.innerHTML = `<tr><td colspan="9"><div class="empty">Chưa có quỹ nào trong danh sách — tìm bằng AI ở trên hoặc thêm ở form bên dưới.</div></td></tr>`;
+    return;
+  }
+  list.innerHTML = prospects.map(p=>{
+    const link = verifyLink(p);
+    const sourceHtml = link
+      ? `<div class="p-source"><a href="${link}" target="_blank" rel="noopener">${p.sourceUrl ? "nguồn ↗" : "website ↗"}</a></div>`
+      : `<div class="p-source hint">chưa có link kiểm chứng</div>`;
+    return `
+    <tr class="${p.aiFound ? 'ai-row' : ''}">
+      <td>
+        <div class="p-name">${p.name} ${p.aiFound ? '<span class="chip gold">AI</span>' : ''}</div>
+        ${sourceHtml}
+      </td>
+      <td>${chipRow(p.fields, 2)}</td>
+      <td>${chipRow(p.regions, 2, "gold")}</td>
+      <td class="p-amount">${(p.amountMin/1000).toFixed(0)}k–${(p.amountMax/1000).toFixed(0)}k</td>
+      <td class="p-deadline">${p.deadline || "—"}</td>
+      <td>${eligibilityBadge(p.eligibility)}</td>
+      <td>
+        <div class="rep-wrap">
+          <div class="rep-bar"><div class="rep-fill" style="width:${p.generosity}%; background:${repColor(p.generosity)}"></div></div>
+          <span class="rep-num">${p.generosity}</span>
+        </div>
+      </td>
+      <td class="p-signal" title="${p.signalNote || ''}">${p.signalDays!=null ? p.signalDays+"d" : "—"}</td>
+      <td><button class="btn-danger btn-sm" onclick="removeProspect('${p.id}')">Xoá</button></td>
+    </tr>`;
+  }).join("");
+}
+function removeProspect(id){
+  prospects = prospects.filter(p=>p.id!==id);
+  renderProspects();
+}
+function addProspect(){
+  const name = document.getElementById("newName").value.trim();
+  if(!name){ alert("Điền tên quỹ trước đã."); return; }
+  const p = {
+    id: "P-"+Date.now(),
+    name,
+    fields: splitTags(document.getElementById("newFields").value),
+    regions: splitTags(document.getElementById("newRegions").value),
+    amountMin: parseFloat(document.getElementById("newAmtMin").value) || 0,
+    amountMax: parseFloat(document.getElementById("newAmtMax").value) || 0,
+    deadline: document.getElementById("newDeadline").value,
+    signalDays: parseFloat(document.getElementById("newSignalDays").value) || 999,
+    signalNote: document.getElementById("newSignalNote").value.trim(),
+    website: document.getElementById("newWebsite").value.trim(),
+    generosity: parseFloat(document.getElementById("newGenerosity").value) || 50,
+    eligibility: document.getElementById("newEligibility").value
+  };
+  prospects.push(p);
+  ["newName","newFields","newRegions","newAmtMin","newAmtMax","newDeadline","newSignalNote","newWebsite"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("newGenerosity").value = 70;
+  document.getElementById("newSignalDays").value = 30;
+  document.getElementById("newEligibility").value = "eligible";
+  renderProspects();
+}
+
+// ---------- RESULTS ----------
+let lastResults = [];
+function computeResults(){
+  syncNgoFromForm();
+  const results = prospects.map(scoreProspect).sort((a,b)=>b.score-a.score);
+  lastResults = results;
+  const area = document.getElementById("resultsArea");
+  if(!results.length){
+    area.innerHTML = `<div class="empty">Chưa có quỹ nào để tính điểm.</div>`;
+    return;
+  }
+  area.innerHTML = results.map((r,i)=>{
+    const color = dialColor(r.score);
+    const factorsLine = r.breakdown.slice(0,3).map(f=>`${WEIGHT_LABELS[f.key]} +${f.contribution}`).join(" · ");
+    const badgeCls = r.eligibility==="ELIGIBLE" ? "ok" : "review";
+    return `
+    <div class="result-row">
+      <div class="dial" style="background:conic-gradient(${color} ${r.score*3.6}deg, #E7E5DA 0deg)">
+        <div class="num"><b>${r.score}</b><small>/100</small></div>
+      </div>
+      <div>
+        <div class="r-name">#${i+1} · ${r.prospect.name}</div>
+        <span class="r-badge ${badgeCls}">${r.eligibility}</span>
+        <div class="r-factors">${factorsLine}</div>
+        <details class="letter-box">
+          <summary>Soạn thư tiếp cận (bản nháp)</summary>
+          <textarea readonly id="letter-${r.prospect.id}">${draftLetter(r)}</textarea>
+          <div class="copy-note">
+            <button class="btn-ghost btn-sm" onclick="copyLetter('${r.prospect.id}')">Copy thư</button>
+            <button class="btn-ghost btn-sm" onclick="draftLetterAI('${r.prospect.id}')">Soạn lại bằng AI (thay bản mẫu)</button>
+            <span id="ai-status-${r.prospect.id}"></span>
+          </div>
+        </details>
+      </div>
+      <div></div>
+    </div>`;
+  }).join("");
+}
+function copyLetter(id){
+  const ta = document.getElementById("letter-"+id);
+  ta.select();
+  document.execCommand("copy");
+}
+
+// ---------- AI ----------
+// API key stays in .env and is only used by server.py. The browser calls the
+// local proxy, so this page works outside Claude without exposing the key.
+function describeApiError(err){
+  if(err instanceof TypeError){
+    return "Không kết nối được tới server local. Hãy chạy `python server.py` rồi mở http://127.0.0.1:8000 (không double-click index.html).";
+  }
+  if(err && err.message){
+    return "AI trả về lỗi (" + err.message + "). Thử lại sau vài giây, hoặc dùng bản mẫu/thủ công bên dưới nếu vẫn lỗi.";
+  }
+  return "Không rõ lỗi gì (xem console để biết chi tiết). Dùng bản mẫu/thủ công bên dưới nhé.";
+}
+
+async function callLLM(userPrompt){
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: userPrompt
+    })
+  });
+  if(!response.ok){
+    let detail = response.status;
+    try{ const errBody = await response.json(); if(errBody?.error?.message) detail += " - " + errBody.error.message; }catch(e){}
+    throw new Error("API lỗi " + detail);
+  }
+  const data = await response.json();
+  return (data.text || "").trim();
+}
+
+async function extractWithAI(){
+  const raw = document.getElementById("rawDesc").value.trim();
+  const statusEl = document.getElementById("extractStatus");
+  if(!raw){ statusEl.innerText = "Dán mô tả tổ chức vào ô trên trước đã."; return; }
+  statusEl.innerText = "Đang trích xuất bằng AI...";
+  const prompt = `Trích xuất hồ sơ tổ chức phi lợi nhuận từ đoạn mô tả tự do dưới đây.
+Chỉ trả về JSON thuần, không thêm chữ nào khác, không markdown, đúng schema sau:
+{"name": string, "mission": string (1-2 câu), "fields": string[] (lĩnh vực hoạt động, tiếng Việt, viết thường),
+"regions": string[] (địa bàn hoạt động, tiếng Việt, viết thường), "budgetMin": number, "budgetMax": number}
+
+Đoạn mô tả:
+"""${raw}"""`;
+  try{
+    const text = await callLLM(prompt);
+    const clean = text.replace(/```json|```/g,"").trim();
+    const parsed = JSON.parse(clean);
+    ngo = {
+      name: parsed.name || ngo.name,
+      mission: parsed.mission || ngo.mission,
+      fields: Array.isArray(parsed.fields) ? parsed.fields : ngo.fields,
+      regions: Array.isArray(parsed.regions) ? parsed.regions : ngo.regions,
+      budgetMin: parsed.budgetMin ?? ngo.budgetMin,
+      budgetMax: parsed.budgetMax ?? ngo.budgetMax
+    };
+    loadNgoToForm();
+    statusEl.innerText = "Đã trích xuất xong — kiểm tra lại form bên dưới rồi sửa nếu cần.";
+  }catch(err){
+    console.error(err);
+    statusEl.innerText = describeApiError(err);
+  }
+}
+
+async function draftLetterAI(prospectId){
+  const result = lastResults.find(r => r.prospect.id === prospectId);
+  if(!result) return;
+  const statusEl = document.getElementById("ai-status-"+prospectId);
+  statusEl.innerText = " Đang soạn bằng AI...";
+  const reasons = result.breakdown.filter(f=>f.score>0).slice(0,3).map(f=>REASON_TEXT[f.key]).join("; ");
+  const prompt = `Viết một thư tiếp cận (outreach email) bằng tiếng Việt, văn phong formal vừa phải,
+từ tổ chức phi lợi nhuận "${ngo.name}" (sứ mệnh: ${ngo.mission}) gửi tới quỹ/nhà tài trợ
+"${result.prospect.name}". Lý do kết nối: ${reasons}. Ngân sách cần cho hạng mục liên quan:
+${(ngo.budgetMin||0).toLocaleString()}-${(ngo.budgetMax||0).toLocaleString()} USD.
+Thư khoảng 150-200 từ, có chào đầu, lý do tiếp cận, đề xuất hợp tác, lời mời trao đổi, và chữ ký.
+Chỉ trả về nội dung thư, không thêm giải thích nào khác.`;
+  try{
+    const letter = await callLLM(prompt);
+    document.getElementById("letter-"+prospectId).value = letter +
+      `\n\n(Điểm phù hợp tham khảo nội bộ: ${result.score}/100 — không phải xác suất được duyệt. Bản do AI soạn, vẫn cần người duyệt trước khi gửi.)`;
+    statusEl.innerText = " Đã soạn xong bằng AI.";
+  }catch(err){
+    console.error(err);
+    statusEl.innerText = " " + describeApiError(err);
+  }
+}
+
+async function callLLMWithSearch(userPrompt){
+  const response = await fetch("/api/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: userPrompt
+    })
+  });
+  if(!response.ok){
+    let detail = response.status;
+    try{ const errBody = await response.json(); if(errBody?.error?.message) detail += " - " + errBody.error.message; }catch(e){}
+    throw new Error("API lỗi " + detail);
+  }
+  const data = await response.json();
+  return (data.text || "").trim();
+}
+
+async function findFundersWithAI(){
+  syncNgoFromForm();
+  const statusEl = document.getElementById("searchStatus");
+  if(!ngo.fields.length && !ngo.regions.length){
+    statusEl.innerText = "Điền hồ sơ NGO ở mục 01 trước (ít nhất lĩnh vực hoặc địa bàn).";
+    return;
+  }
+  statusEl.innerText = "Đang tìm trên web bằng AI... (có thể mất 20-40 giây vì phải search + đọc nguồn thật)";
+  const prompt = `Bạn là agent tìm nguồn tài trợ (grant/quỹ/nhà tài trợ CSR) THẬT cho một tổ chức xã hội (NPO).
+
+Hồ sơ tổ chức:
+- Tên: ${ngo.name}
+- Sứ mệnh: ${ngo.mission}
+- Lĩnh vực: ${ngo.fields.join(", ")}
+- Địa bàn hoạt động: ${ngo.regions.join(", ")}
+- Ngân sách cần gây quỹ: ${ngo.budgetMin}-${ngo.budgetMax} USD
+
+Dùng web search để tìm 5-8 quỹ tài trợ / chương trình grant / CSR doanh nghiệp ĐANG HOẠT ĐỘNG THẬT,
+phù hợp với hồ sơ trên. Ưu tiên quỹ tài trợ tại Việt Nam, nhưng cũng có thể tìm quỹ khu vực Đông Nam Á
+hoặc Châu Á nếu phù hợp lĩnh vực (đề án hướng tới mở rộng khu vực này).
+Không được bịa quỹ không có thật.
+
+Sau khi tìm xong, trả lời CHỈ bằng một JSON array thuần, không thêm chữ nào khác, không markdown,
+không giải thích, mỗi phần tử đúng schema sau:
+[{"name": string, "fields": string[] (tiếng Việt, viết thường),
+"regions": string[] (tiếng Việt, viết thường, có thể gồm "đông nam á"/"châu á" nếu phù hợp),
+"amountMin": number, "amountMax": number,
+"deadline": string (YYYY-MM-DD, để rỗng "" nếu không rõ),
+"eligibility": "eligible" | "review" | "ineligible" (ước lượng dựa trên điều kiện/tư cách pháp lý bạn tìm được,
+mặc định "review" nếu không chắc),
+"generosity": number (0-100, ước lượng độ hào phóng/tần suất giải ngân lịch sử dựa trên thông tin tìm được),
+"signalDays": number (số ngày ước lượng kể từ thông tin/tín hiệu gần nhất bạn tìm được, nếu không rõ ghi 60),
+"signalNote": string (tóm tắt 1 câu bằng LỜI VĂN CỦA BẠN, không chép nguyên văn từ nguồn),
+"sourceUrl": string (link nguồn thật lấy từ kết quả search, để người dùng tự kiểm chứng)}]`;
+
+  try{
+    const text = await callLLMWithSearch(prompt);
+    const clean = text.replace(/```json|```/g,"").trim();
+    const found = JSON.parse(clean);
+    if(!Array.isArray(found) || !found.length){
+      statusEl.innerText = "AI không tìm ra quỹ phù hợp nào — thử điền hồ sơ chi tiết hơn hoặc thêm quỹ thủ công.";
+      return;
+    }
+    if(document.getElementById("clearBeforeSearch").checked){
+      prospects = [];
+    }
+    found.forEach((f,i)=>{
+      prospects.push({
+        id: "AI-"+Date.now()+"-"+i,
+        name: f.name || "Không rõ tên",
+        fields: Array.isArray(f.fields) ? f.fields : [],
+        regions: Array.isArray(f.regions) ? f.regions : [],
+        amountMin: Number(f.amountMin) || 0,
+        amountMax: Number(f.amountMax) || 0,
+        deadline: f.deadline || "",
+        eligibility: ["eligible","review","ineligible"].includes(f.eligibility) ? f.eligibility : "review",
+        generosity: Number(f.generosity) || 50,
+        signalDays: Number(f.signalDays) || 60,
+        signalNote: f.signalNote || "",
+        sourceUrl: f.sourceUrl || "",
+        aiFound: true
+      });
+    });
+    renderProspects();
+    statusEl.innerText = `Đã thêm ${found.length} quỹ tìm được từ web. Kiểm tra lại link nguồn trước khi liên hệ, rồi bấm "Tính điểm & xếp hạng".`;
+  }catch(err){
+    console.error(err);
+    statusEl.innerText = describeApiError(err);
+  }
+}
+
+// ---------- INIT ----------
+loadNgoToForm();
+renderWeights();
+renderProspects();
+</script>
+</body>
+</html>
